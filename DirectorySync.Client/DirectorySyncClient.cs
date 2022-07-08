@@ -1,5 +1,4 @@
-﻿
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace DirectorySync.Client
 {
@@ -23,7 +22,7 @@ namespace DirectorySync.Client
             var result = JsonConvert.DeserializeObject<DirectoryInfo>(downloadedString);
 
             if (result == null)
-                throw new Exception("Can`t parse JSON");
+                throw new InvalidDataException("Couldn't to parse JSON");
 
             return result;
         }
@@ -33,7 +32,7 @@ namespace DirectorySync.Client
             var fullUri = new Uri(_apiBaseUrl, _apiDownloadFileUrl);
                 fullUri = new Uri($"{fullUri}/{filename}");
 
-            return await GetStramFromUriAsync(fullUri);
+            return await GetStreamFromUriAsync(fullUri);
         }
 
         private static async Task<string> DownloadStringAsync(Uri downloadUri)
@@ -42,7 +41,7 @@ namespace DirectorySync.Client
             return await hc.GetStringAsync(downloadUri);
         }
 
-        private static async Task<Stream> GetStramFromUriAsync(Uri downloadUri)
+        private static async Task<Stream> GetStreamFromUriAsync(Uri downloadUri)
         {
             using var hc = new HttpClient();
             return await hc.GetStreamAsync(downloadUri);

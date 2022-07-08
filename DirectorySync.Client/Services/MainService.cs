@@ -20,57 +20,40 @@ namespace DirectorySync.Client.Services
 
                 var client = new DirectorySyncClient(port);
 
-                Console.WriteLine("Connecting...");
+                var serverDirectoryInfo = await client.GetDirectoryInfoAsync();
 
-                var directoryInfo = await client.GetDirectoryInfoAsync();
+                if (serverDirectoryInfo.FileInfos == null)
+                    throw new InvalidDataException("Failed to get directory infos");
 
-                if (directoryInfo.FileInfos == null)
-                    throw new Exception("Failed to get directory infos");
+    
+                var localDirectoryInfo = DirectoryInfo.Scan(Props.LOCALPATH);
 
-                var directory = @"";
-                var directoryActions = DirectoryInfo.Scan(directory).CompareDirectories(directoryInfo);
+                var directoryComparer = new DirectoryComparer(localDirectoryInfo, serverDirectoryInfo);
 
-                foreach (var action in directoryActions)
+                foreach (var fileInfo in directoryComparer.GetFileInfosToDelete())
                 {
-                    switch (action.FileAction)
-                    {
-                        case FileAction.Download:
-                            {
+                    var relativePath = fileInfo.RelativePath;
+                    var destPath = Path.Combine(Props.LOCALPATH, relativePath);
 
-                                var rp = action.FileInfo.RelativePath;
-                                var file = client.GetFileStreamAsync(rp);
 
-                                var destPath = Path.Combine(directory, rp);
+                    _logger.LogInformation($"DONE Delete: file from ${destPath}");
 
-                                var stream = await client.GetFileStreamAsync(rp);
-
-                                using var fileStream = new FileStream(destPath, FileMode.Create, FileAccess.Write);
-
-                                stream.CopyTo(fileStream);
-
-                                _logger.LogInformation($"downloading file to ${destPath}");
-                            }
-                            break;
-                        case FileAction.Delete:
-                            {
-                                var rp = action.FileInfo.RelativePath;
-                                var destPath = Path.Combine(directory, rp);
-
-                                File.Delete(destPath);
-
-                                _logger.LogInformation($"deleting file from ${destPath}");
-                            }
-                            break;
-
-                        case FileAction.Rename:
-                            {
-
-                            }
-                            break;
-                    }
+                    File.Delete(destPath);
                 }
 
-                Console.Read();
+                await Parallel.ForEachAsync(directoryComparer.GetFileInfosToDownload(), async (fileInfo, d) =>
+                {
+                    var relativePath = fileInfo.RelativePath;
+                    var destPath = Path.Combine(Props.LOCALPATH, relativePath);
+
+                    var downloadedFileStream = await client.GetFileStreamAsync(relativePath);
+
+                    using var writeFilestream = new FileStream(destPath, FileMode.Create, FileAccess.Write);
+                    downloadedFileStream.CopyTo(writeFilestream);
+
+                    _logger.LogInformation($"DONE Download: file ${destPath}");
+                });
+
             });
         }
     }

@@ -26,9 +26,9 @@
             var fileInfosInDirectory = fileNamesInDirectory.Select(filePath =>
             {
                 var fullPath = Path.Combine(workingPath, filePath);
-                var filename = Path.GetFileName(fullPath);
+                var relativePath = Path.GetRelativePath(workingPath, fullPath);
 
-                return new FileInfo(fullPath, filename);
+                return new FileInfo(fullPath, relativePath);
             });
 
             return fileInfosInDirectory.ToList();

@@ -29,6 +29,8 @@ namespace DirectorySync.Client
 
         public async Task<Stream> GetFileStreamAsync(string filename)
         {
+            filename = filename.Trim().Replace('\\', '/');
+
             var fullUri = new Uri(_apiBaseUrl, _apiDownloadFileUrl);
                 fullUri = new Uri($"{fullUri}/{filename}");
 

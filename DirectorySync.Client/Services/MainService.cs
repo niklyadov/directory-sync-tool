@@ -51,6 +51,8 @@ namespace DirectorySync.Client.Services
 
                     _logger.LogInformation($"DONE Rename: file from {oldFilePath} to {newFilePath}");
 
+                    CreateDirectoryForFileIfNotExists(newFilePath);
+
                     File.Move(oldFilePath, newFilePath);
                 }
 
@@ -61,6 +63,7 @@ namespace DirectorySync.Client.Services
 
                     var downloadedFileStream = await client.GetFileStreamAsync(relativePath);
 
+                    CreateDirectoryForFileIfNotExists(destPath);
                     using var writeFilestream = new FileStream(destPath, FileMode.Create, FileAccess.Write);
                     downloadedFileStream.CopyTo(writeFilestream);
 
@@ -68,6 +71,13 @@ namespace DirectorySync.Client.Services
                 });
 
             });
+        }
+
+        private void CreateDirectoryForFileIfNotExists(string filePath)
+        {
+            var newFilePathDirectory = Path.GetDirectoryName(filePath);
+            if (!Directory.Exists(newFilePathDirectory) && newFilePathDirectory != null)
+                Directory.CreateDirectory(newFilePathDirectory);
         }
     }
 }

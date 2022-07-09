@@ -2,8 +2,8 @@
 {
     public class DirectoryComparer
     {
-        private DirectoryInfo _clientDirectoryInfo { get; set; }
-        private DirectoryInfo _serverDirectoryInfo { get; set; }
+        private readonly DirectoryInfo _clientDirectoryInfo;
+        private readonly DirectoryInfo _serverDirectoryInfo;
 
         public DirectoryComparer(DirectoryInfo clientDirectoryInfo, DirectoryInfo serverDirectoryInfo)
         {
@@ -25,8 +25,16 @@
             }).ToList();
 
         public ICollection<FileInfo> GetFileInfosToDelete() =>
-            _clientDirectoryInfo.FileInfos.Where(cfi =>
-                !_serverDirectoryInfo.FileInfos.Contains(cfi))
-            .ToList();
+            _clientDirectoryInfo.FileInfos.Where(sfi =>
+            {
+                var fileInfosWithSameNames = _serverDirectoryInfo.FileInfos
+                    .Where(clientFI => sfi.RelativePath.Equals(clientFI.RelativePath));
+
+                var fileInfosWithSameHashes = _serverDirectoryInfo.FileInfos
+                    .Where(clientFI => sfi.Hash.Equals(clientFI.Hash));
+
+                return !fileInfosWithSameHashes.Any() ||
+                       !fileInfosWithSameHashes.Any() && !fileInfosWithSameNames.Any();
+            }).ToList();
     }
 }

@@ -41,6 +41,19 @@ namespace DirectorySync.Client.Services
                     File.Delete(destPath);
                 }
 
+                foreach (var fileInfos in directoryComparer.GetFileInfosPairToRename())
+                {
+                    var clientFileInfo = fileInfos.clientFi;
+                    var serverFileInfo = fileInfos.serverFi;
+
+                    var oldFilePath = Path.Combine(Props.LOCALPATH, clientFileInfo.RelativePath);
+                    var newFilePath = Path.Combine(Props.LOCALPATH, serverFileInfo.RelativePath);
+
+                    _logger.LogInformation($"DONE Rename: file from {oldFilePath} to {newFilePath}");
+
+                    File.Move(oldFilePath, newFilePath);
+                }
+
                 await Parallel.ForEachAsync(directoryComparer.GetFileInfosToDownload(), async (fileInfo, d) =>
                 {
                     var relativePath = fileInfo.RelativePath;

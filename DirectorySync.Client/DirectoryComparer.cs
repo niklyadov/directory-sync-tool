@@ -36,5 +36,22 @@
                 return !fileInfosWithSameHashes.Any() ||
                        !fileInfosWithSameHashes.Any() && !fileInfosWithSameNames.Any();
             }).ToList();
+
+        public ICollection<(FileInfo serverFi, FileInfo clientFi)> GetFileInfosPairToRename() =>
+            _serverDirectoryInfo.FileInfos.Where(sfi =>
+            {
+                var fileInfosWithSameNames = _clientDirectoryInfo.FileInfos
+                    .Where(clientFI => sfi.RelativePath.Equals(clientFI.RelativePath));
+
+                var fileInfosWithSameHashes = _clientDirectoryInfo.FileInfos
+                    .Where(clientFI => sfi.Hash.Equals(clientFI.Hash));
+
+                return !fileInfosWithSameNames.Any() && fileInfosWithSameHashes.Any();
+            }).Select(sfi =>
+            {
+                var cfi = _clientDirectoryInfo.FileInfos.First(cfi => cfi.Hash.Equals(sfi.Hash));
+
+                return (sfi, cfi);
+            }).ToList();
     }
 }

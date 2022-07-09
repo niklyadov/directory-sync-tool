@@ -18,7 +18,7 @@ namespace DirectorySync.Host.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            return Ok(DirectoryInfo.Scan(@""));
+            return Ok(DirectoryInfo.Scan($"{Props.SERVERPATH}"));
         }
     }
 }

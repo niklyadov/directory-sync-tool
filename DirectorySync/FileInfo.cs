@@ -4,19 +4,29 @@ namespace DirectorySync
 {
     public class FileInfo
     {
-        public string FullPath { get; set; }
-        public string RelativePath { get; set; }
-        public string Hash { get; set; }
+        public string? FullPath { get; set; }
+        public string? RelativePath { get; set; }
+        public string? Hash { get; set; }
 
+        public FileInfo()
+        {
+            
+        }
+        
         public FileInfo(string fullPath, string relativePath)
         {
             FullPath = fullPath;
             RelativePath = relativePath;
-            Hash = GetHash();
+            Hash = CalculateHash();
         }
 
-        public string GetHash()
+        public string CalculateHash()
         {
+            if (FullPath == null)
+            {
+                throw new InvalidOperationException($"Full path is not presented");
+            } 
+            
             var data = File.ReadAllBytes(FullPath);
 
             using var sha256 = SHA256.Create();
@@ -26,7 +36,7 @@ namespace DirectorySync
 
         public override string ToString()
         {
-            return $"{FullPath} {RelativePath} {GetHash()}";
+            return $"{FullPath} {RelativePath} {CalculateHash()}";
         }
 
         public bool Equals(FileInfo other)

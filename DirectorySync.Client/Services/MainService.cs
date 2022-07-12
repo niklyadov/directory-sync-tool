@@ -17,6 +17,10 @@ namespace DirectorySync.Client.Services
             await Task.Run(async () =>
             {
                 ushort port = 6800;
+                do
+                {
+                    Console.Write("Enter connection port: ");
+                } while (!ushort.TryParse(Console.ReadLine(), out port));
 
                 var client = new DirectorySyncClient(port);
 
